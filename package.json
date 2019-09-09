@@ -1,7 +1,7 @@
 {
     "name": "smartcard-test",
     "version": "0.0.1",
-    "main": "sct.js",
+    "main": "src.js",
     "author": "Gabriele Coquillard",
     "license": "GPL-2.0-or-later",
     "dependencies": {
@@ -17,7 +17,8 @@
     },
     "scripts": {
         "watch": "watchify src.js -o sct.js -v [ babelify --presets [@babel/preset-env] ]",
-        "build": "browserify sct.js -t [ babelify --presets [@babel/preset-env] ] | terser -mco sct-min.js"
+        "build": "browserify sct.js -t [ babelify --presets [@babel/preset-env] ] | terser -mco sct-min.js",
+        "start": "node src.js"
     },
     "browserify": {
         "transform": [
