@@ -4,21 +4,18 @@
     "main": "sct.js",
     "author": "Gabriele Coquillard",
     "license": "GPL-2.0-or-later",
-    "dependencies": {
-        "pcsclite": "^1.0.0"
-    },
+    "dependencies": {},
     "devDependencies": {
-        "babel": "^6.23.0",
-        "babel-core": "^6.26.3",
-        "babel-preset-es2015": "^6.24.1",
-        "babelify": "^8.0.0",
+        "@babel/core": "^7.6.0",
+        "@babel/preset-env": "^7.6.0",
+        "babelify": "^10.0.0",
         "browserify": "^16.5.0",
-        "uglify-js": "^3.6.0",
+        "terser": "^4.3.0",
         "watchify": "^3.11.1"
     },
     "scripts": {
-        "watch": "watchify src.js -o sct.js -v [ babelify --presets [es2015] ]",
-        "build": "browserify sct.js -t [ babelify --presets [es2015] ] | uglifyjs -m -c -o sct-min.js"
+        "watch": "watchify src.js -o sct.js -v [ babelify --presets [@babel/preset-env] ]",
+        "build": "browserify sct.js -t [ babelify --presets [@babel/preset-env] ] | terser -mco sct-min.js"
     },
     "browserify": {
         "transform": [
@@ -26,10 +23,11 @@
                 "babelify",
                 {
                     "presets": [
-                        "es2015"
+                        "@babel/preset-env"
                     ]
                 }
             ]
         ]
-    }
+    },
+    "browserslist": "> 0.01%"
 }
