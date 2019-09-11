@@ -3553,61 +3553,56 @@ var pcsclite = require('@ap-mitch/pcsclite');
 
 var pcsc = pcsclite();
 pcsc.on('reader', function (reader) {
-  console.log('New reader detected', reader.name);
-  reader.on('error', function (err) {
-    console.log('Error(', reader.name, '):', err.message);
-  });
-  reader.on('status', function (status) {
-    console.log('Status(', reader.name, '): ' + status.state); // check what has changed
+  function exit() {
+    reader.close();
+    pcsc.close();
+  }
 
-    var changes = reader.state ^ status.state;
-
-    if (!changes) {
-      return;
+  SELECT_MF = Buffer.from([0x00, 0xA4, 0x00, 0x00, 0x02, 0x3F, 0x00]);
+  SELECT_DF1 = Buffer.from([0x00, 0xA4, 0x00, 0x00, 0x02, 0x11, 0x00]);
+  SELECT_EF_PERS = Buffer.from([0x00, 0xA4, 0x00, 0x00, 0x02, 0x11, 0x02]);
+  READ_BIN = Buffer.from([0x00, 0xB0, 0x00, 0x00, 0x00]);
+  console.log('Reader: ', reader.name);
+  reader.connect({
+    share_mode: reader.SCARD_SHARE_SHARED
+  }, function (err, protocol) {
+    if (err) {
+      console.log(err);
+      return exit();
     }
 
-    if (status.state == 18) {
-      console.log("card removed");
-      reader.disconnect(reader.SCARD_LEAVE_CARD, function (err) {
+    reader.transmit(SELECT_MF, 255, protocol, function (err, data) {
+      if (err) {
+        console.log(err);
+        return exit();
+      }
+
+      reader.transmit(SELECT_DF1, 255, protocol, function (err, data) {
         if (err) {
           console.log(err);
-          return;
+        } else {
+          reader.transmit(SELECT_EF_PERS, 255, protocol, function (err, data) {
+            if (err) {
+              console.log(err);
+            } else {
+              reader.transmit(READ_BIN, 255, protocol, function (err, data) {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log('Personal Info: ', data.toString());
+                }
+
+                return exit();
+              });
+            }
+          });
         }
-
-        console.log('Disconnected');
       });
-      return;
-    }
-
-    if (status.state == 34) {
-      console.log("card inserted");
-      reader.connect({
-        share_mode: reader.SCARD_SHARE_SHARED
-      }, function (err, protocol) {
-        if (err) {
-          console.log(err);
-          return;
-        }
-
-        console.log('Protocol(', reader.name, '): ', protocol);
-        reader.transmit(Buffer.from([0x00, 0xB0, 0x00, 0x00, 0x20]), 40, protocol, function (err, data) {
-          if (err) {
-            console.log(err);
-            return;
-          }
-
-          console.log('Data received', data);
-        });
-      });
-      return;
-    }
-  });
-  reader.on('end', function () {
-    console.log('Reader ', reader.name, ' removed');
+    });
   });
 });
 pcsc.on('error', function (err) {
-  console.log('PCSC error ', err.message);
+  console.log('PCSC error', err.message);
 });
 
 }).call(this,require("buffer").Buffer)
